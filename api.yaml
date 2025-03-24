@@ -1,65 +1,189 @@
 openapi: 3.1.0
+
+#
+# INFO
+#
 info:
   title: GlowCalendar
-  description: GlowCalendar
+  description: |-
+    GlowCalendar API Docs. I don't know what to write here.
   version: 0.0.1-SNAPSHOT
+  
+#
+# SERVERS
+#
 servers:
-  - url: 'http://localhost:8080/api/v1'
+  - url: 'https://api.glowcalendar.cfd/api/v1'
+  
+#
+# ROUTS
+#
 paths:
-  /logout:
-    delete:
-      summary: Invalidate session
-      tags:
-        - Authentication
-      responses:
-        204:
-          description: Logout successful
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-  /authenticate:
+  
+  # Register a new user.
+  /auth/register:
     post:
+    
+      summary: Register a new user.
       tags:
         - Authentication
-      summary: Authentication for getting session cookie
+      
       requestBody:
-        $ref: '#/components/requestBodies/AuthenticationRequest'
-      security: []
+        $ref: '#/components/requestBodies/AuthRegister'
+      
       responses:
+      
+        204:
+          $ref: '#/components/responses/AuthLoginSuccess'
+          
+        400:
+          $ref: '#/components/responses/AuthRegisterError'
+          
+        
+  
+  # Invalidate session (Log out)
+  /auth/logout:
+    delete:
+    
+      summary: Invalidate session.
+      tags:
+        - Authentication
+      
+      responses:
+      
+        204:
+          description: Logout successful.
+          
+        401:
+          description: Session is expired or not presented
+  
+  # Login (Create new session)
+  /auth/login:
+    post:
+    
+      summary: Authentication for getting session cookie
+      tags:
+        - Authentication
+        
+      requestBody:
+        $ref: '#/components/requestBodies/AuthLogin'
+      
+      security: []
+      
+      responses:
+      
         200:
-          headers:
-            Set-Cookie:
-              description: >
-                Successfully authenticated.
-                The session ID is returned in a cookie named `SESSION`. 
-                You need to include this cookie in subsequent requests.
-              schema:
-                type: string
-                example: SESSION=a415f428-6032-4644-b34c-ae4c9d449291; Path=/; HttpOnly
-          description: Authentication successful
+          $ref: '#/components/responses/AuthLoginSuccess'
+          
+        400:
+          description: Bad request. Invalid parameters.
+          
         403:
-          description: Invalid credentials
+          description: Login error (most likely, incorrect credentials)
+
+#
+# COMPONENTS
+#
 components:
+
+  #
+  # REQUESTS
+  #
   requestBodies:
-    AuthenticationRequest:
+  
+    #
+    # AUTH
+    #
+    
+    # Login request
+    AuthLogin:
       content:
         application/json:
           schema:
             type: object
             properties:
+            
               username:
                 type: string
-                example: user
+                examples: 
+                  - user
+                
               password:
                 type: string
-                example: password
+                examples:
+                  - password
+    
+    # Register a new user request
+    AuthRegister:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+            
+              email:
+                type: string
+                examples: 
+                  - survivalboomnetwork@gmail.com
+            
+              username:
+                type: string
+                examples:
+                  - TIMURishche
+                
+              password:
+                type: string
+                examples:
+                  - MySuperPassword228*
+    
+  #
+  # RESPONSES
+  #
   responses:
-    UnauthorizedError:
-      description: Session is expired or not presented
+  
+    #
+    # AUTH
+    #
+    
+    # Registration failed response.
+    AuthRegisterError:
+      description: Registration failed with an error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+            
+              error:
+                type: string
+                examples: 
+                  - USERNAME_TAKEN
+              
+              msg:
+                type: string
+                examples:
+                  - Username {USERNAME} is already taken
+    
+    
+    AuthLoginSuccess:
+      description: Login success
+      content:
+        text/plain:
+          schema:
+            type: string
+            examples: 
+              - <insert JWT token example here>
+  
+  #
+  # SECURITY
+  #
   securitySchemes:
     cookieAuthentication:
       type: apiKey
       in: cookie
       name: SESSION
+      
+      
 security:
   - cookieAuthentication: []
 
