@@ -55,13 +55,13 @@ paths:
           description: Logout successful.
           
         401:
-          description: Session is expired or not presented
+          $ref: '#/components/responses/UnauthorizedError'
   
   # Login (Create new session)
   /auth/login:
     post:
     
-      summary: Authentication for getting session cookie
+      summary: Login. Create new JWT token.
       tags:
         - Authentication
         
@@ -173,6 +173,9 @@ components:
             type: string
             examples: 
               - <insert JWT token example here>
+
+    UnauthorizedError:
+       description: Session is expired or not presented
   
   #
   # SECURITY
