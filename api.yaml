@@ -1,0 +1,66 @@
+openapi: 3.1.0
+info:
+  title: GlowCalendar
+  description: GlowCalendar
+  version: 0.0.1-SNAPSHOT
+servers:
+  - url: 'http://localhost:8080/api/v1'
+paths:
+  /logout:
+    delete:
+      summary: Invalidate session
+      tags:
+        - Authentication
+      responses:
+        204:
+          description: Logout successful
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+  /authenticate:
+    post:
+      tags:
+        - Authentication
+      summary: Authentication for getting session cookie
+      requestBody:
+        $ref: '#/components/requestBodies/AuthenticationRequest'
+      security: []
+      responses:
+        200:
+          headers:
+            Set-Cookie:
+              description: >
+                Successfully authenticated.
+                The session ID is returned in a cookie named `SESSION`. 
+                You need to include this cookie in subsequent requests.
+              schema:
+                type: string
+                example: SESSION=a415f428-6032-4644-b34c-ae4c9d449291; Path=/; HttpOnly
+          description: Authentication successful
+        403:
+          description: Invalid credentials
+components:
+  requestBodies:
+    AuthenticationRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                example: user
+              password:
+                type: string
+                example: password
+  responses:
+    UnauthorizedError:
+      description: Session is expired or not presented
+  securitySchemes:
+    cookieAuthentication:
+      type: apiKey
+      in: cookie
+      name: SESSION
+security:
+  - cookieAuthentication: []
+
+  
