@@ -6,7 +6,7 @@ openapi: 3.1.0
 info:
   title: GlowCalendar
   description: |-
-    GlowCalendar API Docs. I don't know what to write here.
+    GlowCalendar API Docs
   version: 0.0.1-SNAPSHOT
   
 #
@@ -16,12 +16,12 @@ servers:
   - url: 'https://api.glowcalendar.cfd/api/v1'
   
 #
-# ROUTS
+# ROUTES
 #
 paths:
   
   # Register a new user.
-  /auth/register:
+  /authentication/register:
     post:
     
       summary: Register a new user.
@@ -29,20 +29,20 @@ paths:
         - Authentication
       
       requestBody:
-        $ref: '#/components/requestBodies/AuthRegister'
+        $ref: '#/components/requestBodies/AuthenticationRegister'
       
       responses:
       
         204:
-          $ref: '#/components/responses/AuthLoginSuccess'
+          $ref: '#/components/responses/AuthenticationLoginSuccess'
           
         400:
-          $ref: '#/components/responses/AuthRegisterError'
+          $ref: '#/components/responses/AuthenticationRegisterError'
           
         
   
   # Invalidate session (Log out)
-  /auth/logout:
+  /authentication/logout:
     delete:
     
       summary: Invalidate session.
@@ -58,7 +58,7 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
   
   # Login (Create new session)
-  /auth/login:
+  /authentication:
     post:
     
       summary: Login. Create new JWT token.
@@ -66,14 +66,14 @@ paths:
         - Authentication
         
       requestBody:
-        $ref: '#/components/requestBodies/AuthLogin'
+        $ref: '#/components/requestBodies/AuthenticationLogin'
       
       security: []
       
       responses:
       
         200:
-          $ref: '#/components/responses/AuthLoginSuccess'
+          $ref: '#/components/responses/AuthenticationLoginSuccess'
           
         400:
           description: Bad request. Invalid parameters.
@@ -96,7 +96,7 @@ components:
     #
     
     # Login request
-    AuthLogin:
+    AuthenticationLogin:
       content:
         application/json:
           schema:
@@ -114,7 +114,7 @@ components:
                   - password
     
     # Register a new user request
-    AuthRegister:
+    AuthenticationRegister:
       content:
         application/json:
           schema:
@@ -146,7 +146,7 @@ components:
     #
     
     # Registration failed response.
-    AuthRegisterError:
+    AuthenticationRegisterError:
       description: Registration failed with an error
       content:
         application/json:
@@ -165,7 +165,7 @@ components:
                   - Username {USERNAME} is already taken
     
     
-    AuthLoginSuccess:
+    AuthenticationLoginSuccess:
       description: Login success
       content:
         text/plain:
