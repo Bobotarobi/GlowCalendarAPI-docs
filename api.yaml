@@ -6,7 +6,7 @@ openapi: 3.1.0
 info:
   title: GlowCalendar
   description: |-
-    GlowCalendar API Docs. I don't know what to write here.
+    GlowCalendar API Docs
   version: 0.0.1-SNAPSHOT
   
 #
@@ -16,70 +16,54 @@ servers:
   - url: 'https://api.glowcalendar.cfd/api/v1'
   
 #
-# ROUTS
+# ROUTES
 #
 paths:
   
   # Register a new user.
-  /auth/register:
+  /authentication/register:
     post:
-    
-      summary: Register a new user.
+      summary: Register a new user
       tags:
         - Authentication
-      
       requestBody:
-        $ref: '#/components/requestBodies/AuthRegister'
-      
+        $ref: '#/components/requestBodies/AuthenticationRegisterRequest'
       responses:
-      
         204:
-          $ref: '#/components/responses/AuthLoginSuccess'
-          
+          description: "Registration successful. User is now needed validation of email"
         400:
-          $ref: '#/components/responses/AuthRegisterError'
+          $ref: '#/components/responses/AuthenticationRegisterError'
           
         
   
   # Invalidate session (Log out)
-  /auth/logout:
+  /authentication/logout:
     delete:
-    
-      summary: Invalidate session.
+      summary: Invalidate session
       tags:
         - Authentication
-      
       responses:
-      
         204:
-          description: Logout successful.
-          
+          description: "Logout successful"
         401:
           $ref: '#/components/responses/UnauthorizedError'
   
-  # Login (Create new session)
-  /auth/login:
+  # Authentication (Create new session)
+  /authentication:
     post:
-    
-      summary: Login. Create new JWT token.
+      summary: Create new session
       tags:
         - Authentication
-        
       requestBody:
-        $ref: '#/components/requestBodies/AuthLogin'
+        $ref: '#/components/requestBodies/AuthenticationRequest'
       
       security: []
       
       responses:
-      
         200:
-          $ref: '#/components/responses/AuthLoginSuccess'
-          
-        400:
-          description: Bad request. Invalid parameters.
-          
+          $ref: '#/components/responses/AuthenticationResponse'
         403:
-          description: Login error (most likely, incorrect credentials)
+          description: Authentication error (incorrect credentials)
 
 #
 # COMPONENTS
@@ -92,49 +76,39 @@ components:
   requestBodies:
   
     #
-    # AUTH
+    # AUTHENTICATION
     #
     
-    # Login request
-    AuthLogin:
+    # Authentication request
+    AuthenticationRequest:
       content:
         application/json:
           schema:
             type: object
             properties:
-            
-              username:
-                type: string
-                examples: 
-                  - user
-                
-              password:
-                type: string
-                examples:
-                  - password
-    
-    # Register a new user request
-    AuthRegister:
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-            
               email:
                 type: string
-                examples: 
-                  - survivalboomnetwork@gmail.com
-            
-              username:
-                type: string
-                examples:
-                  - TIMURishche
-                
+                example: "balamutmaks@gmail.com"
               password:
                 type: string
-                examples:
-                  - MySuperPassword228*
+                example: "password"
+    
+    # Register a new user request
+    AuthenticationRegisterRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "survivalboomnetwork@gmail.com"
+              code:
+                type: string
+                example: "gj56f7nh"
+              password:
+                type: string
+                example: "MySuperPassword228*"
     
   #
   # RESPONSES
@@ -142,38 +116,31 @@ components:
   responses:
   
     #
-    # AUTH
+    # AUTHENTICATION
     #
     
     # Registration failed response.
-    AuthRegisterError:
+    AuthenticationRegisterError:
       description: Registration failed with an error
       content:
         application/json:
           schema:
             type: object
             properties:
-            
               error:
                 type: string
-                examples: 
-                  - USERNAME_TAKEN
-              
-              msg:
+                example: "EMAIL_TAKEN"
+              message:
                 type: string
-                examples:
-                  - Username {USERNAME} is already taken
-    
-    
-    AuthLoginSuccess:
+                example: "Email {EMAIL} is already taken"
+    AuthenticationResponse:
       description: Login success
-      content:
-        text/plain:
+      content: {}
+      headers:
+        Set-Cookie:
+          description: "Session cookie"
           schema:
             type: string
-            examples: 
-              - <insert JWT token example here>
-
     UnauthorizedError:
        description: Session is expired or not presented
   
