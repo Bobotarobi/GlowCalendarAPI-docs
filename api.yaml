@@ -27,6 +27,23 @@ paths:
   # SESSIONS
   #
 
+  # Get session information.
+  /session:
+    get:
+
+      summary: "Get current session information."
+      tags:
+        - Sessions
+      
+      responses:
+        200:
+          description: Operation success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+
   # Create a new session.
   /session/create:
     post:
@@ -59,6 +76,10 @@ paths:
               description: "Session cookie"
               schema:
                 type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
         403:
           description: Authentication error (incorrect credentials)
 
@@ -119,6 +140,10 @@ paths:
       responses:
         204:
           description: "Registration successful."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
         400:
           description: Registration failed with an error
           content:
@@ -158,6 +183,10 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         200:
           description: Successfully received an user information.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
 
   # Delete an user.
   /user/{userId}/delete:
@@ -205,6 +234,12 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         200:
           description: Successfully received a list of classrooms.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Session"
 
   #
   # INVITES
@@ -252,9 +287,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Invitation'
+                $ref: '#/components/schemas/Invitation'
 
   # Accept an invitation.
   /invitation/{invitationId}/accept:
@@ -402,9 +435,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Classroom'
+                $ref: '#/components/schemas/Classroom'
 
   # Delete a classroom.
   /classroom/{classroomId}/delete:
@@ -577,6 +608,11 @@ components:
           type: string
           examples:
             - Тарас Шевченко
+        avatarUrl:
+          description: The url of user's avatar
+          type: string
+          examples:
+            - https://cdn.glowcalendar.cfd/2304857938465923
           
     Classroom:
       type: object
