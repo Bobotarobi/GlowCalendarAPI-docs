@@ -91,30 +91,6 @@ paths:
   # USERS
   #
 
-  # Get an user information.
-  /user/{userId}:
-    get:
-      summary: "Get an user information."
-      description: "This endpoint is used to retrieve user information, including the “your account” page of the users themselves where sensitive user data is located. Backend determines whose Session was sent in the request and gives full information, such as email, about the user if the Session belongs to this user, if not it gives partial information about the user containing only userName and avatarUrl."
-
-      tags:
-        - Users
-      
-      parameters:
-        - name: userId
-          in: path
-          description: ID of the user
-          required: true
-          schema:
-            type: integer
-            format: int64
-      
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfully received an user information.
-
   # Create a new user.
   /user/create:
     post:
@@ -156,6 +132,30 @@ paths:
                     type: string
                     examples: 
                       - "Email is already taken"
+
+  # Get an user information.
+  /user/{userId}:
+    get:
+      summary: "Get an user information."
+      description: "This endpoint is used to retrieve user information, including the “your account” page of the users themselves where sensitive user data is located. Backend determines whose Session was sent in the request and gives full information, such as email, about the user if the Session belongs to this user, if not it gives partial information about the user containing only userName and avatarUrl."
+
+      tags:
+        - Users
+      
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: integer
+            format: int64
+      
+      responses:
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        200:
+          description: Successfully received an user information.
 
   # Delete an user.
   /user/{userId}/delete:
@@ -218,7 +218,13 @@ paths:
         401:
           $ref: '#/components/responses/UnauthorizedError'
         200:
-          description: Successfully received a list of invitations.
+          description: Successfull operation.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invitation'
 
   # Get an invitation information.
   /invitation/{invitationId}:
@@ -240,7 +246,13 @@ paths:
         401:
           $ref: '#/components/responses/UnauthorizedError'
         200:
-          description: Successfully received an invitation information.
+          description: Successfull operation.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Invitation'
 
   # Accept an invitation.
   /invitation/{invitationId}/accept:
@@ -334,30 +346,13 @@ paths:
         401:
           $ref: '#/components/responses/UnauthorizedError'
         200:
-          description: Successfully received a list of classrooms.
-
-  # Get classroom information.
-  /classroom/{classroomId}:
-    get:
-      summary: "Get classroom information"
-      tags:
-        - Classrooms
-      
-      parameters:
-        - name: classroomId
-          in: path
-          description: ID of the classroom
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfully received a classroom information.
-      
+          description: Successfull operation.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Classroom'
 
   # Create a new classroom.
   /classroom/create:
@@ -380,6 +375,34 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         200:
           description: Successfully created a new classroom.
+
+  # Get classroom information.
+  /classroom/{classroomId}:
+    get:
+      summary: "Get classroom information"
+      tags:
+        - Classrooms
+      
+      parameters:
+        - name: classroomId
+          in: path
+          description: ID of the classroom
+          required: true
+          schema:
+            type: integer
+            format: int64
+
+      responses:
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        200:
+          description: Successfull operation.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Classroom'
 
   # Delete a classroom.
   /classroom/{classroomId}/delete:
@@ -531,10 +554,110 @@ paths:
 #
 components:
 
+  schemas:
+
+    User:
+      type: object
+      properties:
+        id:
+          description: The id of the user
+          type: integer
+          format: int64
+          examples: 
+            - 34534534
+        email:
+          description: The email of the user
+          type: string
+          examples:
+            - superduperuser@mymail.com
+        displayName:
+          description: The display name of the user
+          type: string
+          examples:
+            - Тарас Шевченко
+          
+    Classroom:
+      type: object
+      properties:
+        id:
+          description: The id of the classroom in the system
+          type: integer
+          format: int64
+          examples:
+            - 34556546547356
+        displayName:
+          description: The display name of the classroom
+          type: string
+          examples:
+            - Захист відчизни - 6Б
+        ownerId:
+          description: The user id of the classroom owner 
+          type: integer
+          format: int64
+        members:
+          description: The list of the classroom members id
+          type: array
+          items:
+            type: integer
+            examples:
+              - 12342354235
+    
+    Session:
+      type: object
+      properties:
+        id:
+          description: The id of the session
+          type: integer
+          format: int64
+          examples:
+            - 235345343453
+        userId:
+          description: The id of the user linked to this session
+          type: integer
+          format: int64
+          examples:
+            - 234234235435
+        lastLoginTime:
+          description: Last time when this session was used
+          type: integer
+          format: int64
+          examples:
+            - 1743841467
+        ipAddress:
+          description: The ip address of this session
+          type: string
+          examples:
+            - "178.54.34.12"
+        lastLoginDevice:
+          type: string
+          examples:
+            - Firefox XXX/Linux XXX
+
+    Invitation:
+      type: object
+      properties:
+        id:
+          description: The id of the invitation
+          type: integer
+          format: int64
+          examples:
+            - 4238648236842
+        type:
+          description: The type of the invitation
+          type string:
+            examples:
+              - CLASSROOM
+              - FRIEND
+        targetId:
+          description: The id of the invitation target. Could be an user id (friend request) or a classroom id (classroom invitation)
+        
+
+
+
   #
   # REQUESTS
   #
-  requestBodies:
+  # requestBodies:
   
     
   #
