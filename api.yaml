@@ -99,6 +99,8 @@ paths:
       tags:
         - Users
       
+      security: []
+      
       requestBody:
         content:
           application/json:
