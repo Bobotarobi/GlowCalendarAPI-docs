@@ -7,579 +7,65 @@ info:
   title: GlowCalendar
   description: |-
     GlowCalendar API Docs
-    Python blyaaaatt!!!! 
-    BIM BIM BAM BAM BOM BOM. 
-    java.lang.OutOfMemoryError
   version: 0.0.1-SNAPSHOT
-  
+
 #
 # SERVERS
 #
 servers:
   - url: 'https://api.glowcalendar.cfd/api/v1'
-  
+
 #
 # ROUTES
 #
 paths:
 
-  #
-  # SESSIONS
-  #
-
-  # Get session information.
-  /session:
-    get:
-
-      summary: "Get current session information."
-      tags:
-        - Sessions
-      
-      responses:
-        200:
-          description: Operation success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Session"
-
-
-  # Create a new session.
-  /session/create:
+  # Register a new user.
+  /authentication/register:
     post:
-      summary: "Create new session."
+      summary: Register a new user
       tags:
-        - Sessions
-      
+        - Authentication
       requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  examples: 
-                    - "balamutmaks@gmail.com"
-                password:
-                  type: string
-                  examples: 
-                    - "password"
-      
+        $ref: '#/components/requestBodies/AuthenticationRegisterRequest'
+      responses:
+        204:
+          description: "Registration successful. User is now needed validation of email"
+        400:
+          $ref: '#/components/responses/AuthenticationRegisterError'
+
+
+
+  # Invalidate session (Log out)
+  /authentication/logout:
+    delete:
+      summary: Invalidate session
+      tags:
+        - Authentication
+      responses:
+        204:
+          description: "Logout successful"
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+
+  # Authentication (Create new session)
+  /authentication:
+    post:
+      summary: Create new session
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/AuthenticationRequest'
+
       security: []
-      
+
       responses:
         200:
-          description: Login success
-          headers:
-            Set-Cookie:
-              description: "Session cookie"
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Session"
+          $ref: '#/components/responses/AuthenticationResponse'
         403:
           description: Authentication error (incorrect credentials)
 
-  
-  # Invalidate user's session.
-  /session/{sessionId}/invalidate:
-    delete:
-      summary: "Invalidate user's session."
-
-      parameters:
-        - name: sessionId
-          in: path
-          description: ID of the session
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      tags:
-        - Sessions
-      
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfully invalidated user's session.
-    
-
-  #
-  # USERS
-  #
-
-  # Create a new user.
-  /user/create:
-    post:
-      
-      summary: Create a new user.
-      tags:
-        - Users
-      
-      security: []
-      
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  examples: 
-                    - "survivalboomnetwork@gmail.com"
-                password:
-                  type: string
-                  examples: 
-                    - "MySuperPassword228*"
-      
-      responses:
-        204:
-          description: "Registration successful."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        400:
-          description: Registration failed with an error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    examples:
-                    - "EMAIL_TAKEN"
-                  message:
-                    type: string
-                    examples: 
-                      - "Email is already taken"
-
-  # Get an user information.
-  /user/{userId}:
-    get:
-      summary: "Get an user information."
-      description: "This endpoint is used to retrieve user information, including the “your account” page of the users themselves where sensitive user data is located. Backend determines whose Session was sent in the request and gives full information, such as email, about the user if the Session belongs to this user, if not it gives partial information about the user containing only userName and avatarUrl."
-
-      tags:
-        - Users
-      
-      parameters:
-        - name: userId
-          in: path
-          description: ID of the user
-          required: true
-          schema:
-            type: integer
-            format: int64
-      
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfully received an user information.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-
-  # Delete an user.
-  /user/{userId}/delete:
-    delete:
-      summary: "Deletes a user."
-      description: "This endpoint is used in most cases to delete a user account by the user. If some jerk tries to delete another user, he will get a 401 error because Backend will see that the Session provided in the request belongs to another user. However, the admin users of the platform bypass this check and can delete anyone they want."
-
-      tags:
-        - Users
-
-      parameters:
-        - name: userId
-          in: path
-          description: ID of the user
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfully deleted an user.
-
-  # Retrieve user's sessions.
-  /user/{userId}/sessions:
-    get:
-      summary: "Retrieve user's currently active session."
-
-      tags:
-        - Users
-         
-      parameters:
-        - name: userId
-          in: path
-          description: ID of the user
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfully received a list of classrooms.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Session"
-
-  #
-  # INVITES
-  #
-
-  # Get a list of all user's invitations.
-  /invitations:
-    get:
-      summary: "Get a list of all user's invitations."
-      tags:
-        - Invitations
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfull operation.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Invitation'
-
-  # Get an invitation information.
-  /invitation/{invitationId}:
-    get:
-      summary: "Get an invitation information."
-      tags:
-        - Invitations
-      
-      parameters:
-        - name: invitationId
-          in: path
-          description: ID of the invitation
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfull operation.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Invitation'
-
-  # Accept an invitation.
-  /invitation/{invitationId}/accept:
-    post:
-      summary: "Accept an invitation by id."
-      tags:
-        - Invitations
-      
-      parameters:
-        - name: invitationId
-          in: path
-          description: ID of the invitation
-          required: true
-          schema:
-            type: integer
-            format: int64
-        
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: An invitation with provided id does not exist.
-        200:
-          description: Successfully accepted an invitation.
-  
-  # Decline an invitation.
-  /invitation/{invitationId}/decline:
-    post:
-      summary: "Decline an invitation by id."
-      tags:
-        - Invitations
-      
-      parameters:
-        - name: invitationId
-          in: path
-          description: ID of the invitation
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: An invitation with provided id does not exist.
-        200:
-          description: Successfully declined an invitation.
-
-  # Cancel an invitation.
-  /invitation/{invitationId}/cancel:
-    delete:
-      summary: "Cancel an invitation by id."
-      tags:
-        - Invitations
-      
-      parameters:
-        - name: invitationId
-          in: path
-          description: ID of the invitation
-          required: true
-          schema:
-            type: integer
-            format: int64
-      
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: An invitation with provided id does not exist.
-        200:
-          description: Successfully cancelled an invitation.
-
-          
-
-
-  #
-  # CLASSROOMS
-  #
-
-  # Get a list of all classes where the user is.
-  /classrooms:
-    get:
-      summary: "Get a list of all classes where the user is."
-      tags:
-        - Classrooms
-      
-      # auth...
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfull operation.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Classroom'
-
-  # Create a new classroom.
-  /classroom/create:
-    post:
-      summary: "Create a new classroom."
-      tags: 
-        - Classrooms
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                displayName:
-                  type: integer
-                  examples:
-                    - "Школа Абобусів 6Б - Інформатика"
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfully created a new classroom.
-
-  # Get classroom information.
-  /classroom/{classroomId}:
-    get:
-      summary: "Get classroom information"
-      tags:
-        - Classrooms
-      
-      parameters:
-        - name: classroomId
-          in: path
-          description: ID of the classroom
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        200:
-          description: Successfull operation.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Classroom'
-
-  # Delete a classroom.
-  /classroom/{classroomId}/delete:
-    delete:
-      summary: "Delete a classroom by id."
-      tags:
-        - Classrooms
-      
-      parameters:
-        - name: classroomId
-          in: path
-          description: ID of the classroom
-          required: true
-          schema:
-            type: integer
-            format: int64
-                  
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: A classroom with provided id does not exist.
-        200:
-          description: Successfully deleted a classroom.
-
-  # Edit a classroom.
-  /classroom/{classroomId}/edit:
-    put:
-      summary: "Edit a classroom by id."
-      tags:
-        - Classrooms
-      
-      parameters:
-        - name: classroomId
-          in: path
-          description: ID of the classroom
-          required: true
-          schema:
-            type: integer
-            format: int64
-      
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                displayName:
-                  type: string
-                  examples: 
-                    - Школа малолітніх дебілів.
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: A classroom with provided id does not exist.
-        200:
-          description: Successfully edited a classroom.
-
-  # Invite a new user to a classroom.
-  /classroom/{classroomId}/invite:
-    post:
-      summary: "Invite a new user to a classroom."
-      tags:
-        - Classrooms
-      
-      parameters:
-        - name: classroomId
-          in: path
-          description: ID of the classroom
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userId:
-                  type: integer
-                  examples:
-                  - 345395734957347
-      
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: A classroom or a user with provided id does not exist.
-        200:
-          description: Successfully invited a user to a classroom.
-
-  # Kick a member from a classroom.
-  /classroom/{classroomId}/kick:
-    delete:
-      summary: "Kick a member from a classroom"
-      tags:
-        - Classrooms
-      
-      parameters:
-        - name: classroomId
-          in: path
-          description: ID of the classroom
-          required: true
-          schema:
-            type: integer
-            format: int64
-      
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: A classroom or a user with provided id does not exist.
-        200:
-          description: Successfully kicked member from a classroom.
-              
-
-  # Leave a classroom.
-  /classroom/{classroomId}/leave:
-    post:
-      summary: "Leave a classroom."
-      tags:
-        - Classrooms
-      
-      parameters:
-        - name: classroomId
-          in: path
-          description: ID of the classroom
-          required: true
-          schema:
-            type: integer
-            format: int64
-
-      responses:
-        401:
-          $ref: '#/components/responses/UnauthorizedError'
-        404:
-          description: A classroom with provided id does not exist.
-        200:
-          description: Successfully leaved a classroom.
-      
+  /users:
 
 
 #
@@ -587,125 +73,80 @@ paths:
 #
 components:
 
-  schemas:
-
-    User:
-      type: object
-      properties:
-        id:
-          description: The id of the user
-          type: integer
-          format: int64
-          examples: 
-            - 34534534
-        email:
-          description: The email of the user
-          type: string
-          examples:
-            - superduperuser@mymail.com
-        displayName:
-          description: The display name of the user
-          type: string
-          examples:
-            - Тарас Шевченко
-        avatarUrl:
-          description: The url of user's avatar
-          type: string
-          examples:
-            - https://cdn.glowcalendar.cfd/2304857938465923
-          
-    Classroom:
-      type: object
-      properties:
-        id:
-          description: The id of the classroom in the system
-          type: integer
-          format: int64
-          examples:
-            - 34556546547356
-        displayName:
-          description: The display name of the classroom
-          type: string
-          examples:
-            - Захист відчизни - 6Б
-        ownerId:
-          description: The user id of the classroom owner 
-          type: integer
-          format: int64
-        members:
-          description: The list of the classroom members id
-          type: array
-          items:
-            type: integer
-            examples:
-              - 12342354235
-    
-    Session:
-      type: object
-      properties:
-        id:
-          description: The id of the session
-          type: integer
-          format: int64
-          examples:
-            - 235345343453
-        userId:
-          description: The id of the user linked to this session
-          type: integer
-          format: int64
-          examples:
-            - 234234235435
-        lastLoginTime:
-          description: Last time when this session was used
-          type: integer
-          format: int64
-          examples:
-            - 1743841467
-        ipAddress:
-          description: The ip address of this session
-          type: string
-          examples:
-            - "178.54.34.12"
-        lastLoginDevice:
-          type: string
-          examples:
-            - Firefox XXX/Linux XXX
-
-    Invitation:
-      type: object
-      properties:
-        id:
-          description: The id of the invitation
-          type: integer
-          format: int64
-          examples:
-            - 4238648236842
-        type:
-          description: The type of the invitation
-          type string:
-            examples:
-              - CLASSROOM
-              - FRIEND
-        targetId:
-          description: The id of the invitation target. Could be an user id (friend request) or a classroom id (classroom invitation)
-        
-
-
-
   #
   # REQUESTS
   #
-  # requestBodies:
-  
-    
+  requestBodies:
+
+    #
+    # AUTHENTICATION
+    #
+
+    # Authentication request
+    AuthenticationRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "balamutmaks@gmail.com"
+              password:
+                type: string
+                example: "password"
+
+    # Register a new user request
+    AuthenticationRegisterRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "survivalboomnetwork@gmail.com"
+              code:
+                type: string
+                example: "gj56f7nh"
+              password:
+                type: string
+                example: "MySuperPassword228*"
+
   #
   # RESPONSES
   #
   responses:
 
+    #
+    # AUTHENTICATION
+    #
+
+    # Registration failed response.
+    AuthenticationRegisterError:
+      description: Registration failed with an error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "EMAIL_TAKEN"
+              message:
+                type: string
+                example: "Email {EMAIL} is already taken"
+    AuthenticationResponse:
+      description: Login success
+      content: {}
+      headers:
+        Set-Cookie:
+          description: "Session cookie"
+          schema:
+            type: string
     UnauthorizedError:
-       description: Session is expired or not presented.
-  
+      description: Session is expired or not presented
+
   #
   # SECURITY
   #
@@ -714,9 +155,8 @@ components:
       type: apiKey
       in: cookie
       name: SESSION
-      
-      
+
+
 security:
   - cookieAuthentication: []
 
-  
