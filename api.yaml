@@ -1,54 +1,26 @@
 openapi: 3.1.0
 
-#
-# INFO
-#
 info:
   title: GlowCalendar
-  description: |-
-    GlowCalendar API Docs
+  description: GlowCalendar API Docs
   version: 0.0.1-SNAPSHOT
 
-#
-# SERVERS
-#
 servers:
   - url: 'https://api.glowcalendar.cfd/api/v1'
 
-#
-# ROUTES
-#
 paths:
 
-  # Register a new user.
-  /authentication/register:
-    post:
-      summary: Register a new user
-      tags:
-        - Authentication
-      requestBody:
-        $ref: '#/components/requestBodies/AuthenticationRegisterRequest'
-      responses:
-        204:
-          description: "Registration successful. User is now needed validation of email"
-        400:
-          $ref: '#/components/responses/AuthenticationRegisterError'
-
-
-
-  # Invalidate session (Log out)
   /authentication/logout:
     delete:
       summary: Invalidate session
       tags:
         - Authentication
       responses:
-        204:
-          description: "Logout successful"
-        401:
+        '204':
+          description: Logout successful
+        '401':
           $ref: '#/components/responses/UnauthorizedError'
 
-  # Authentication (Create new session)
   /authentication:
     post:
       summary: Create new session
@@ -56,33 +28,151 @@ paths:
         - Authentication
       requestBody:
         $ref: '#/components/requestBodies/AuthenticationRequest'
+      security: [ ]  # No auth required
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthenticationResponse'
+        '403':
+          description: Authentication error (incorrect credentials)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "INVALID_CREDENTIALS"
+                  message:
+                    type: string
+                    example: "Email or password is incorrect"
 
-      security: []
+  /registration:
+    post:
+      summary: Create registration code
+      description: >
+        Create registration code. This code is needed to register a new user.
+        Access for admins and teachers.
+      tags:
+        - Registration
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationRequest'
+      responses:
+        '204':
+          description: >
+            Use /registration/code next, followed by /registration/verify to complete registration.
+          $ref: '#/components/responses/RegistrationResponse'
+        '400':
+          $ref: '#/components/responses/RegistrationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          description: Access denied. Only admins and teachers can create registration codes
 
+  /registration/code:
+    post:
+      summary: Register by registration code
+      description: >
+        Use after POST /registration. Then use /registration/verify to complete registration.
+      tags:
+        - Registration
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationCodeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/RegistrationCodeResponse'
+        '400':
+          $ref: '#/components/responses/RegistrationCodeError'
+  /registration/verify:
+    post:
+      summary: Verify registration by code that was sent to email
+      description: Final step of registration. Use after POST /registration/code.
+        This will create a new user. Then, you can use /authentication to login.
+      tags:
+        - Registration
+      requestBody:
+        $ref: '#/components/requestBodies/RegistrationVerifyRequest'
       responses:
         200:
-          $ref: '#/components/responses/AuthenticationResponse'
-        403:
-          description: Authentication error (incorrect credentials)
+          description: >
+            Registration successful. You can now login with the new user.
+        400:
+          $ref: '#/components/responses/RegistrationVerifyError'
 
-  /users:
 
 
-#
-# COMPONENTS
-#
 components:
 
-  #
-  # REQUESTS
-  #
   requestBodies:
+    RegistrationVerifyRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              verification_id:
+                type: integer
+                example: 4353
+              verification_code:
+                type: string
+                example: "148800"
+    RegistrationCodeRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                example: "gj56f7nh"
+              email:
+                type: string
+                example: "balamutmaks@gmail.com"
+              password:
+                type: string
+                example: "MySuperPassword228*"
+            required:
+              - code
+              - email
+              - password
 
-    #
-    # AUTHENTICATION
-    #
+    RegistrationRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              birthday:
+                type: string
+                format: date
+                example: "2000-01-01"
+              firstname:
+                type: string
+                example: "John"
+              lastname:
+                type: string
+                example: "Doe"
+              role:
+                type: string
+                enum: [ STUDENT, TEACHER ]
+                example: "STUDENT"
+            required:
+              - birthday
+              - firstname
+              - lastname
+              - role
 
-    # Authentication request
+    UserVerifyRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                example: "148800"
+            required:
+              - code
+
     AuthenticationRequest:
       content:
         application/json:
@@ -95,9 +185,11 @@ components:
               password:
                 type: string
                 example: "password"
+            required:
+              - email
+              - password
 
-    # Register a new user request
-    AuthenticationRegisterRequest:
+    UserRegisterRequest:
       content:
         application/json:
           schema:
@@ -112,19 +204,90 @@ components:
               password:
                 type: string
                 example: "MySuperPassword228*"
+            required:
+              - email
+              - code
+              - password
 
-  #
-  # RESPONSES
-  #
   responses:
+    RegistrationVerifyError:
+      description: Bad verification id or code
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+                example: "Code {CODE} is invalid"
+    RegistrationResponse:
+      description: Return id of registration code
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 142
 
-    #
-    # AUTHENTICATION
-    #
+    RegistrationCodeError:
+      description: Email is invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "INVALID_EMAIL"
+              message:
+                type: string
+                example: "Email {EMAIL} is taken"
 
-    # Registration failed response.
-    AuthenticationRegisterError:
-      description: Registration failed with an error
+    RegistrationCodeResponse:
+      description: Return ID to be used in /registration/verify
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 142
+
+    RegistrationError:
+      description: Registration failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "INVALID_TYPE"
+              message:
+                type: string
+                example: "Birthday {CODE} is invalid"
+
+    UserVerifyError:
+      description: Verification failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "INVALID_CODE"
+              message:
+                type: string
+                example: "Code {CODE} is invalid"
+
+    UserRegisterError:
+      description: Registration failed
       content:
         application/json:
           schema:
@@ -136,27 +299,42 @@ components:
               message:
                 type: string
                 example: "Email {EMAIL} is already taken"
+
     AuthenticationResponse:
       description: Login success
-      content: {}
       headers:
         Set-Cookie:
-          description: "Session cookie"
+          description: Session cookie
           schema:
             type: string
-    UnauthorizedError:
-      description: Session is expired or not presented
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Login successful"
 
-  #
-  # SECURITY
-  #
+    UnauthorizedError:
+      description: Session is expired or not present
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "UNAUTHORIZED"
+              message:
+                type: string
+                example: "Session is invalid or missing"
+
   securitySchemes:
     cookieAuthentication:
       type: apiKey
       in: cookie
       name: SESSION
 
-
 security:
-  - cookieAuthentication: []
-
+  - cookieAuthentication: [ ]
